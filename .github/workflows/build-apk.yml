@@ -23,6 +23,8 @@ jobs:
         with: { channel: 'stable', cache: true }
       - run: flutter create --platforms=android --project-name=ludo_app .
       - run: flutter pub get
+      - name: Generate app icons
+        run: dart run flutter_launcher_icons
       - run: flutter build apk --release --split-per-abi
       - name: Upload Game APKs
         uses: softprops/action-gh-release@v2
