@@ -1,5 +1,4 @@
 node_modules/
-lib/
 dist/
 *.log
 .env
@@ -7,3 +6,6 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+
+# TypeScript build output only
+server/lib/
