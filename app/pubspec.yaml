@@ -11,5 +11,18 @@ dependencies:
     sdk: flutter
   web_socket_channel: ^3.0.0
 
+dev_dependencies:
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/icon/ludo.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#1A1A2E"
+  adaptive_icon_foreground: "assets/icon/ludo.png"
+
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/
