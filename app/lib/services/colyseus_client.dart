@@ -5,7 +5,7 @@ class ColyseusClient {
   WebSocketChannel? _channel;
   String? roomId;
   String? matchCode;
-  final void Function(Map<String, dynamic>)? onMessage;
+  void Function(Map<String, dynamic>)? onMessage;
 
   ColyseusClient({this.onMessage});
 

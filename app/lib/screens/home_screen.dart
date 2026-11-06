@@ -9,12 +9,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _serverCtrl = TextEditingController(text: 'ws://10.0.2.2:2567');
+  final _serverCtrl = TextEditingController(text: 'wss://ludo-od5h.onrender.com');
   final _codeCtrl = TextEditingController();
   final _nameCtrl = TextEditingController(text: 'Player');
 
   void _create() async {
-    final client = ColyseusClient(onMessage: (m) {
+    late final ColyseusClient client;
+    client = ColyseusClient(onMessage: (m) {
       if (m['type'] == 'room') {
         if (!mounted) return;
         Navigator.push(context, MaterialPageRoute(
@@ -34,7 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-    final client = ColyseusClient(onMessage: (m) {
+    late final ColyseusClient client;
+    client = ColyseusClient(onMessage: (m) {
       if (m['type'] == 'joined') {
         if (!mounted) return;
         Navigator.push(context, MaterialPageRoute(
