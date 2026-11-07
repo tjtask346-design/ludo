@@ -10,7 +10,7 @@ class OnlineRoomScreen extends StatefulWidget {
 
 class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
   final _codeCtrl = TextEditingController();
-  final String _serverUrl = 'wss://ludo-od5h.onrender.com'; // Hardcoded here!
+  final String _serverUrl = 'wss://ludo-od5h.onrender.com'; // Hidden from player!
   bool _isLoading = false;
 
   void _createRoom() async {
@@ -61,7 +61,6 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
               children: [
                 const Text('PLAY ONLINE', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2)),
                 const SizedBox(height: 40),
-                // Create Room Button
                 ElevatedButton(
                   onPressed: _createRoom,
                   style: ElevatedButton.styleFrom(
@@ -74,7 +73,6 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
                 const SizedBox(height: 40),
                 const Text('OR JOIN WITH CODE', style: TextStyle(color: Colors.white54)),
                 const SizedBox(height: 20),
-                // Join Room Field
                 SizedBox(
                   width: 250,
                   child: TextField(

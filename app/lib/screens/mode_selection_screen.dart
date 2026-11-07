@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'online_room_screen.dart';
-import 'game_screen.dart';
-import '../services/colyseus_client.dart';
 
 class ModeSelectionScreen extends StatelessWidget {
   const ModeSelectionScreen({super.key});
