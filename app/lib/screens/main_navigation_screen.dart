@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import 'home_screen.dart';
+import 'friends_screen.dart';
 import 'shop_screen.dart';
 import 'leaderboard_screen.dart';
 import 'profile_screen.dart';
-import 'settings_screen.dart';
+import 'club_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -16,7 +17,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text('Friends System Coming in Next Phase!')),
+    const FriendsScreen(),
     const ShopScreen(),
     const LeaderboardScreen(),
     const ProfileScreen(),
@@ -26,6 +27,38 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: AppColors.blue),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CircleAvatar(radius: 30, backgroundColor: Colors.white, child: Icon(Icons.person, size: 40, color: AppColors.blue)),
+                  SizedBox(height: 10),
+                  Text('Player Name', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups, color: AppColors.blue),
+              title: const Text('Adda / Clubs'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ClubScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings, color: AppColors.blue),
+              title: const Text('Settings'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
