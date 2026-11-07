@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../core/theme/app_theme.dart';
 import '../game/ludo_engine.dart';
 import '../widgets/ludo_board.dart';
 import '../widgets/dice_widget.dart';
+import '../services/settings_service.dart';
+import 'game_result_screen.dart';
 
 class OfflineGameScreen extends StatefulWidget {
   final bool isVsComputer;
@@ -33,10 +36,44 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
     _checkBotTurn();
   }
 
+  void _triggerVibration() {
+    if (SettingsService.vibrationOn) {
+      HapticFeedback.mediumImpact();
+    }
+  }
+
+  void _checkGameOver() {
+    if (engine.gameOver) {
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) {
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (_) => GameResultScreen(winnerName: engine.winner, isWin: engine.winner == 'Player 1'),
+          ));
+        }
+      });
+    }
+  }
+
   void _checkBotTurn() {
     if (engine.currentPlayer.isBot) {
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) setState(() { engine.rollDice(); });
+        if (mounted) {
+          setState(() { engine.rollDice(); });
+          _triggerVibration();
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted && engine.hasRolled && !engine.gameOver) {
+              for (int i = 0; i < 4; i++) {
+                if (engine.isValidMove(engine.currentPlayer, i, engine.diceValue)) {
+                  setState(() { engine.moveToken(i); });
+                  _triggerVibration();
+                  break;
+                }
+              }
+              _checkGameOver();
+              _checkBotTurn();
+            }
+          });
+        }
       });
     } else {
       if (!widget.isVsComputer && previousTurnIndex != -1 && previousTurnIndex != engine.currentTurnIndex) {
@@ -49,6 +86,7 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
   void _rollDice() {
     if (engine.hasRolled || engine.currentPlayer.isBot) return;
     setState(() => isRolling = true);
+    _triggerVibration();
     engine.rollDice();
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) setState(() => isRolling = false);
@@ -60,6 +98,8 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
     setState(() {
       engine.moveToken(tokenIndex);
     });
+    _triggerVibration();
+    _checkGameOver();
     _checkBotTurn();
   }
 
@@ -75,7 +115,6 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Map engine state to UI maps
     Map<String, List<int>> tokensMap = {};
     Map<String, String> colorsMap = {};
     for (var p in engine.players) {

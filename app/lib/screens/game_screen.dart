@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../core/theme/app_theme.dart';
 import '../services/colyseus_client.dart';
+import '../services/settings_service.dart';
 import '../widgets/ludo_board.dart';
 import '../widgets/dice_widget.dart';
+import 'game_result_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final ColyseusClient client;
@@ -22,6 +25,8 @@ class _GameScreenState extends State<GameScreen> {
   bool rolling = false;
   bool diceRolled = false;
   String? myPlayerId;
+  bool gameOver = false;
+  String winnerName = "";
 
   @override
   void initState() {
@@ -55,6 +60,7 @@ class _GameScreenState extends State<GameScreen> {
         _processPlayers(m['players'] ?? []);
         break;
       case 'dice_rolled':
+        if (SettingsService.vibrationOn) HapticFeedback.mediumImpact();
         setState(() {
           rolling = true;
           diceValue = m['value'];
@@ -74,6 +80,19 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           currentTurn = m['currentTurn'];
           if (currentTurn == myPlayerId) diceRolled = false;
+        });
+        break;
+      case 'game_over':
+        setState(() {
+          gameOver = true;
+          winnerName = m['winner'];
+        });
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            Navigator.pushReplacement(context, MaterialPageRoute(
+              builder: (_) => GameResultScreen(winnerName: winnerName, isWin: winnerName == (playerNames[myPlayerId] ?? '')),
+            ));
+          }
         });
         break;
       case 'error':

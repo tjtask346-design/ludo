@@ -4,6 +4,7 @@ import 'home_screen.dart';
 import 'shop_screen.dart';
 import 'leaderboard_screen.dart';
 import 'profile_screen.dart';
+import 'settings_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -15,7 +16,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text('Friends System Coming Soon!')), // Placeholder for friends
+    const Center(child: Text('Friends System Coming in Next Phase!')),
     const ShopScreen(),
     const LeaderboardScreen(),
     const ProfileScreen(),
