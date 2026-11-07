@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
-import 'home_screen.dart';
+import 'main_navigation_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -28,7 +28,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Align(
               alignment: Alignment.topRight,
               child: TextButton(
-                onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen())),
+                onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen())),
                 child: const Text('SKIP', style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.bold)),
               ),
             ),
@@ -81,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_currentPage == _pages.length - 1) {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
                     } else {
                       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.ease);
                     }
