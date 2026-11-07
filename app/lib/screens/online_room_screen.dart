@@ -15,7 +15,10 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
 
   void _createRoom() async {
     setState(() => _isLoading = true);
-    final client = ColyseusClient(onMessage: (m) {
+    
+    // FIX: 'client' কে age theke declare kora hoyeche jate closure e use kora jay
+    late final ColyseusClient client;
+    client = ColyseusClient(onMessage: (m) {
       if (m['type'] == 'room') {
         if (!mounted) return;
         setState(() => _isLoading = false);
@@ -24,6 +27,7 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
         ));
       }
     });
+    
     await client.connect(_serverUrl);
     client.createRoom('Player 1');
   }
@@ -35,7 +39,10 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
       return;
     }
     setState(() => _isLoading = true);
-    final client = ColyseusClient(onMessage: (m) {
+    
+    // FIX: 'client' কে age theke declare kora hoyeche
+    late final ColyseusClient client;
+    client = ColyseusClient(onMessage: (m) {
       if (m['type'] == 'joined') {
         if (!mounted) return;
         setState(() => _isLoading = false);
@@ -44,6 +51,7 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
         ));
       }
     });
+    
     await client.connect(_serverUrl);
     client.joinRoom(code, 'Player 2');
   }
