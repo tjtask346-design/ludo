@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 import '../core/theme/app_theme.dart';
+import '../services/api_service.dart';
 import 'mode_selection_screen.dart';
 import 'daily_rewards_screen.dart';
 import 'settings_screen.dart';
@@ -11,44 +14,95 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String playerName = 'Player';
+  int coins = 0;
+  int diamonds = 0;
+  int level = 1;
+  String playerId = '';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    playerId = prefs.getString('playerId') ?? '';
+
+    if (playerId.isEmpty) {
+      // Generate a random player ID if new user
+      playerId = 'P${Random().nextInt(99999999)}';
+      await prefs.setString('playerId', playerId);
+    }
+
+    // Fetch from MongoDB via API
+    final userData = await ApiService.login(playerId, 'Player');
+    if (userData != null) {
+      setState(() {
+        playerName = userData['name'] ?? 'Player';
+        coins = userData['coins'] ?? 1000;
+        diamonds = userData['diamonds'] ?? 50;
+        level = userData['level'] ?? 1;
+        isLoading = false;
+      });
+    } else {
+      // Fallback if server is sleeping
+      setState(() {
+        coins = 1000;
+        diamonds = 50;
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        leading: Builder(builder: (context) => IconButton(icon: const Icon(Icons.menu, color: AppColors.textDark), onPressed: () => Scaffold.of(context).openDrawer())),
+        actions: [
+          IconButton(icon: const Icon(Icons.settings, color: AppColors.textDark), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+        ],
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopHeader(),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildGameModeCard('PLAY ONLINE', 'Play with players around the world', AppColors.blue, Icons.public, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
-                  }),
-                  const SizedBox(height: 12),
-                  Row(
+        child: isLoading 
+          ? const Center(child: CircularProgressIndicator(color: AppColors.blue))
+          : Column(
+              children: [
+                _buildTopHeader(),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
                     children: [
-                      Expanded(child: _buildGameModeCard('WITH FRIENDS', 'Create private room', AppColors.green, Icons.group, () {})),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildGameModeCard('COMPUTER', 'Play vs AI', AppColors.red, Icons.computer, () {
+                      _buildGameModeCard('PLAY ONLINE', 'Play with players around the world', AppColors.blue, Icons.public, () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
-                      })),
+                      }),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: _buildGameModeCard('WITH FRIENDS', 'Create private room', AppColors.green, Icons.group, () {})),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildGameModeCard('COMPUTER', 'Play vs AI', AppColors.red, Icons.computer, () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
+                          })),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildGameModeCard('PASS N PLAY', 'Play offline with friends', AppColors.yellow, Icons.phone_android, () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
+                      }),
+                      const SizedBox(height: 24),
+                      const Text('EVENTS & REWARDS', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                      const SizedBox(height: 12),
+                      _buildRewardBanner(context),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  _buildGameModeCard('PASS N PLAY', 'Play offline with friends', AppColors.yellow, Icons.phone_android, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
-                  }),
-                  const SizedBox(height: 24),
-                  const Text('EVENTS & REWARDS', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                  const SizedBox(height: 12),
-                  _buildRewardBanner(context),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
       ),
     );
   }
@@ -72,13 +126,13 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Player Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
+                Text(playerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(color: AppColors.yellow, borderRadius: BorderRadius.circular(4)),
-                      child: const Text('Lv. 12', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: Text('Lv. $level', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -96,9 +150,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          _buildResourceChip(Icons.monetization_on, AppColors.yellow, '10.2K'),
+          _buildResourceChip(Icons.monetization_on, AppColors.yellow, '$coins'),
           const SizedBox(width: 8),
-          _buildResourceChip(Icons.diamond, AppColors.blueLight, '150'),
+          _buildResourceChip(Icons.diamond, AppColors.blueLight, '$diamonds'),
         ],
       ),
     );

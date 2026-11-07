@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   web_socket_channel: ^3.0.0
+  http: ^1.2.1
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.1
