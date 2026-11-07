@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import '../game/ludo_engine.dart';
 
 class LudoBoard extends StatelessWidget {
-  final LudoEngine engine;
-  final void Function(int tokenIndex)? onTokenTap;
+  final Map<String, List<int>> tokensByPlayer;
+  final Map<String, String> playerColors;
+  final String? highlightedPlayer;
+  final void Function(String playerId, int tokenIndex)? onTokenTap;
 
-  const LudoBoard({super.key, required this.engine, this.onTokenTap});
+  const LudoBoard({
+    super.key, 
+    required this.tokensByPlayer, 
+    required this.playerColors, 
+    this.highlightedPlayer, 
+    this.onTokenTap
+  });
 
   static final List<List<int>> pathCells = [
     [6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],
@@ -41,20 +48,17 @@ class LudoBoard extends StatelessWidget {
 
   List<Widget> _buildTokens(double cell) {
     final widgets = <Widget>[];
-    for (int p = 0; p < engine.players.length; p++) {
-      final player = engine.players[p];
-      for (int i = 0; i < 4; i++) {
-        final token = player.tokens[i];
-        final grid = _posToGrid(player.color, i, token.position);
+    for (final entry in tokensByPlayer.entries) {
+      final pid = entry.key;
+      final tokens = entry.value;
+      final color = playerColors[pid] ?? 'red';
+      
+      for (int i = 0; i < tokens.length; i++) {
+        final grid = _posToGrid(color, i, tokens[i]);
+        final isMyToken = pid == highlightedPlayer;
         
-        // Check if this token can be moved
-        bool canMove = false;
-        if (engine.currentTurnIndex == p && engine.hasRolled && engine.isValidMove(player, i, engine.diceValue)) {
-          canMove = true;
-        }
-
         widgets.add(AnimatedPositioned(
-          key: ValueKey('${player.color}_$i'),
+          key: ValueKey('${pid}_$i'),
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
           left: grid[1] * cell + cell * 0.1,
@@ -62,8 +66,8 @@ class LudoBoard extends StatelessWidget {
           width: cell * 0.8,
           height: cell * 0.8,
           child: GestureDetector(
-            onTap: canMove && onTokenTap != null ? () => onTokenTap!(i) : null,
-            child: _Token(color: _colorOf(player.color), highlighted: canMove),
+            onTap: isMyToken && onTokenTap != null ? () => onTokenTap!(pid, i) : null,
+            child: _Token(color: _colorOf(color), highlighted: isMyToken),
           ),
         ));
       }
@@ -174,10 +178,10 @@ class _BoardPainter extends CustomPainter {
   void _drawCenter(Canvas canvas, double cell) {
     final cx = 7.5 * cell; final cy = 7.5 * cell; final r = 1.5 * cell;
     final triangles = [
-      [Offset(cx, cy - r), Offset(cx - r, cy), Offset(cx + r, cy), const Color(0xFF20A65A)], // Green
-      [Offset(cx + r, cy), Offset(cx, cy - r), Offset(cx, cy + r), const Color(0xFFFFC928)], // Yellow
-      [Offset(cx, cy + r), Offset(cx + r, cy), Offset(cx - r, cy), const Color(0xFF2878DB)], // Blue
-      [Offset(cx - r, cy), Offset(cx, cy + r), Offset(cx, cy - r), const Color(0xFFE53935)], // Red
+      [Offset(cx, cy - r), Offset(cx - r, cy), Offset(cx + r, cy), const Color(0xFF20A65A)],
+      [Offset(cx + r, cy), Offset(cx, cy - r), Offset(cx, cy + r), const Color(0xFFFFC928)],
+      [Offset(cx, cy + r), Offset(cx + r, cy), Offset(cx - r, cy), const Color(0xFF2878DB)],
+      [Offset(cx - r, cy), Offset(cx, cy + r), Offset(cx, cy - r), const Color(0xFFE53935)],
     ];
     for (final t in triangles) {
       final p = Path()..moveTo((t[0] as Offset).dx, (t[0] as Offset).dy)..lineTo((t[1] as Offset).dx, (t[1] as Offset).dy)..lineTo((t[2] as Offset).dx, (t[2] as Offset).dy)..close();

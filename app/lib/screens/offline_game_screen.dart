@@ -39,7 +39,6 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
         if (mounted) setState(() { engine.rollDice(); });
       });
     } else {
-      // Pass N Play Handover Logic
       if (!widget.isVsComputer && previousTurnIndex != -1 && previousTurnIndex != engine.currentTurnIndex) {
         setState(() => showHandover = true);
       }
@@ -56,7 +55,7 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
     });
   }
 
-  void _onTokenTap(int tokenIndex) {
+  void _onTokenTap(String playerId, int tokenIndex) {
     if (engine.currentPlayer.isBot) return;
     setState(() {
       engine.moveToken(tokenIndex);
@@ -76,6 +75,14 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Map engine state to UI maps
+    Map<String, List<int>> tokensMap = {};
+    Map<String, String> colorsMap = {};
+    for (var p in engine.players) {
+      tokensMap[p.name] = p.tokens.map((t) => t.position).toList();
+      colorsMap[p.name] = p.color;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: Text(engine.gameOver ? 'Game Over' : '${engine.currentPlayer.name}\'s Turn')),
@@ -91,7 +98,12 @@ class _OfflineGameScreenState extends State<OfflineGameScreen> {
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 500),
-                        child: LudoBoard(engine: engine, onTokenTap: _onTokenTap),
+                        child: LudoBoard(
+                          tokensByPlayer: tokensMap,
+                          playerColors: colorsMap,
+                          highlightedPlayer: engine.currentPlayer.name,
+                          onTokenTap: _onTokenTap,
+                        ),
                       ),
                     ),
                   ),

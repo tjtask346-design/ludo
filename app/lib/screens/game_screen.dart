@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/theme/app_theme.dart';
 import '../services/colyseus_client.dart';
 import '../widgets/ludo_board.dart';
 import '../widgets/dice_widget.dart';
@@ -17,11 +18,10 @@ class _GameScreenState extends State<GameScreen> {
   Map<String, String> playerColors = {};
   Map<String, String> playerNames = {};
   String? currentTurn;
-  int dice = 0;
+  int diceValue = 0;
   bool rolling = false;
   bool diceRolled = false;
   String? myPlayerId;
-  bool gameOver = false;
 
   @override
   void initState() {
@@ -57,10 +57,10 @@ class _GameScreenState extends State<GameScreen> {
       case 'dice_rolled':
         setState(() {
           rolling = true;
-          dice = m['value'];
+          diceValue = m['value'];
           if (m['playerId'] == myPlayerId) diceRolled = true;
         });
-        Future.delayed(const Duration(milliseconds: 600), () {
+        Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) setState(() => rolling = false);
         });
         break;
@@ -70,11 +70,6 @@ class _GameScreenState extends State<GameScreen> {
           diceRolled = false;
         });
         break;
-      case 'turn_voided':
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${playerNames[m['playerId']]} rolled 3 sixes! Turn voided.')),
-        );
-        break;
       case 'turn_changed':
         setState(() {
           currentTurn = m['currentTurn'];
@@ -82,9 +77,7 @@ class _GameScreenState extends State<GameScreen> {
         });
         break;
       case 'error':
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(m['message'] ?? 'Error')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m['message'] ?? 'Error')));
         break;
     }
   }
@@ -93,10 +86,10 @@ class _GameScreenState extends State<GameScreen> {
 
   Color _colorFromName(String n) {
     switch (n) {
-      case 'red': return Colors.red.shade600;
-      case 'green': return Colors.green.shade600;
-      case 'yellow': return Colors.amber.shade600;
-      case 'blue': return Colors.blue.shade600;
+      case 'red': return const Color(0xFFE53935);
+      case 'green': return const Color(0xFF20A65A);
+      case 'yellow': return const Color(0xFFFFC928);
+      case 'blue': return const Color(0xFF2878DB);
       default: return Colors.grey;
     }
   }
@@ -113,37 +106,26 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final myTokens = tokensByPlayer[myPlayerId] ?? [-1, -1, -1, -1];
-
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: Text('Match ${widget.matchCode}', style: const TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text('Match ${widget.matchCode}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.exit_to_app, color: AppColors.red),
+            onPressed: () => Navigator.pop(context),
+          )
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Wrap(
-                spacing: 8,
-                children: playerColors.entries.map((e) {
-                  final isTurn = e.key == currentTurn;
-                  return Chip(
-                    backgroundColor: isTurn ? _colorFromName(e.value) : _colorFromName(e.value).withValues(alpha: 0.4),
-                    label: Text(playerNames[e.key] ?? '?', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  );
-                }).toList(),
-              ),
-            ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12.0),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
+                    constraints: const BoxConstraints(maxWidth: 500),
                     child: LudoBoard(
                       tokensByPlayer: tokensByPlayer,
                       playerColors: playerColors,
@@ -154,69 +136,29 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
             ),
-            if (isMyTurn && diceRolled)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  'Tap a token to move (dice: $dice)',
-                  style: const TextStyle(color: Colors.white70),
-                ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
               ),
-            Padding(
-              padding: const EdgeInsets.all(12),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  DiceWidget(value: dice, rolling: rolling, onTap: _rollDice),
-                  const SizedBox(width: 24),
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ElevatedButton.icon(
-                        onPressed: isMyTurn && !diceRolled ? _rollDice : null,
-                        icon: const Icon(Icons.casino),
-                        label: Text(isMyTurn ? 'Roll Dice' : 'Wait...'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isMyTurn ? _colorFromName(playerColors[myPlayerId] ?? 'red') : Colors.grey,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        ),
-                      ),
-                      if (isMyTurn && diceRolled)
-                        TextButton(
-                          onPressed: () => widget.client.skipTurn(),
-                          child: const Text('Skip Turn', style: TextStyle(color: Colors.white70)),
-                        ),
+                      Text(isMyTurn ? 'YOUR TURN' : 'WAITING...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isMyTurn ? AppColors.green : AppColors.textLight)),
+                      Text(diceRolled ? 'Select a token' : 'Tap dice to roll', style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
                     ],
                   ),
+                  DiceWidget(
+                    value: diceValue,
+                    rolling: rolling,
+                    onTap: isMyTurn && !diceRolled ? _rollDice : null,
+                  ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(4, (i) {
-                  final pos = myTokens[i];
-                  final label = pos == -1 ? 'Base' : (pos == 56 ? 'Home' : 'Tile $pos');
-                  return GestureDetector(
-                    onTap: () => _tapToken(myPlayerId ?? '', i),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 40, height: 40,
-                          decoration: BoxDecoration(
-                            color: _colorFromName(playerColors[myPlayerId] ?? 'red'),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Center(child: Icon(Icons.circle, color: Colors.white, size: 8)),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-                      ],
-                    ),
-                  );
-                }),
               ),
             ),
           ],
