@@ -10,118 +10,118 @@ class HomeScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            colors: [Color(0xFF1E130C), Color(0xFF9A8478)], // Warm wood-like gradient
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Top Bar (Coins, Settings)
+              // Top Bar (Coins, Gems)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black45,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.amber, width: 2),
-                      ),
-                      child: const Row(
+                    Row(
+                      children: [
+                        _buildResourceBar(Icons.monetization_on, Colors.amber, '10,250'),
+                        const SizedBox(width: 8),
+                        _buildResourceBar(Icons.diamond, Colors.cyanAccent, '150'),
+                      ],
+                    ),
+                    const Icon(Icons.settings, color: Colors.white, size: 32),
+                  ],
+                ),
+              ),
+              
+              const Spacer(),
+              
+              // Logo
+              const Text(
+                'BULLA',
+                style: TextStyle(
+                  fontSize: 60,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.amber,
+                  letterSpacing: 4,
+                  shadows: [
+                    Shadow(color: Colors.black, offset: Offset(0, 4), blurRadius: 10),
+                  ],
+                ),
+              ),
+              const Text(
+                'L U D O',
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 15,
+                  shadows: [
+                    Shadow(color: Colors.black, offset: Offset(0, 4), blurRadius: 10),
+                  ],
+                ),
+              ),
+              
+              const Spacer(),
+              
+              // Player Profile
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 30),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.amber, width: 2),
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.blueAccent,
+                      child: Icon(Icons.person, size: 36, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.monetization_on, color: Colors.amber),
-                          SizedBox(width: 8),
-                          Text('1,250', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text('Player Name', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                          Text('Level 12', style: TextStyle(color: Colors.amber, fontSize: 14, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
-                    const Icon(Icons.settings, color: Colors.white, size: 30),
-                  ],
-                ),
-              ),
-              
-              const Spacer(),
-              
-              // Main Logo
-              const Text(
-                'LUDO',
-                style: TextStyle(
-                  fontSize: 90,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: 10,
-                  shadows: [
-                    Shadow(color: Colors.blueAccent, offset: Offset(0, 6), blurRadius: 15),
-                    Shadow(color: Colors.black87, offset: Offset(0, 10), blurRadius: 20),
-                  ],
-                ),
-              ),
-              const Text(
-                'STAR',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-                  letterSpacing: 15,
-                ),
-              ),
-              
-              const Spacer(),
-              
-              // Player Profile Card
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 40),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: const Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.blueAccent,
-                      child: Icon(Icons.person, size: 40, color: Colors.white),
-                    ),
-                    SizedBox(width: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Player', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                        Text('Level 1', style: TextStyle(color: Colors.amber, fontSize: 14)),
-                      ],
-                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.edit, color: Colors.white54),
+                    )
                   ],
                 ),
               ),
               
               const SizedBox(height: 40),
               
-              // PLAY Button
+              // Play Button
               GestureDetector(
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
                 },
                 child: Container(
-                  width: 220,
-                  height: 70,
+                  width: 200,
+                  height: 75,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFFF12711), Color(0xFFF5AF19)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-                    borderRadius: BorderRadius.circular(35),
+                    gradient: const LinearGradient(colors: [Color(0xFFFFE000), Color(0xFFFFA500)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white, width: 2),
                     boxShadow: [
-                      const BoxShadow(color: Color(0xFFB31B0A), offset: Offset(0, 8), blurRadius: 0),
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.5), offset: const Offset(0, 12), blurRadius: 20),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.6), offset: const Offset(0, 8), blurRadius: 10),
                     ],
                   ),
                   child: const Center(
                     child: Text(
                       'PLAY',
-                      style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: 2),
+                      style: TextStyle(color: Colors.black, fontSize: 36, fontWeight: FontWeight.w900, letterSpacing: 2),
                     ),
                   ),
                 ),
@@ -130,6 +130,24 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildResourceBar(IconData icon, Color color, String amount) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 6),
+          Text(amount, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+        ],
       ),
     );
   }

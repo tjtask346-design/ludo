@@ -21,7 +21,9 @@ jobs:
         with: { distribution: 'temurin', java-version: '17' }
       - uses: subosito/flutter-action@v2
         with: { channel: 'stable', cache: true }
-      - run: flutter create --platforms=android --project-name=ludo_app .
+      - run: flutter create --platforms=android --project-name=bulla_ludo .
+      - name: Set App Name to Bulla Ludo
+        run: sed -i 's/android:label="bulla_ludo"/android:label="Bulla Ludo"/g' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - name: Generate app icons
         run: dart run flutter_launcher_icons

@@ -10,13 +10,11 @@ class OnlineRoomScreen extends StatefulWidget {
 
 class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
   final _codeCtrl = TextEditingController();
-  final String _serverUrl = 'wss://ludo-od5h.onrender.com'; // Hidden from player!
+  final String _serverUrl = 'wss://ludo-od5h.onrender.com';
   bool _isLoading = false;
 
   void _createRoom() async {
     setState(() => _isLoading = true);
-    
-    // FIX: 'client' কে age theke declare kora hoyeche jate closure e use kora jay
     late final ColyseusClient client;
     client = ColyseusClient(onMessage: (m) {
       if (m['type'] == 'room') {
@@ -27,7 +25,6 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
         ));
       }
     });
-    
     await client.connect(_serverUrl);
     client.createRoom('Player 1');
   }
@@ -39,8 +36,6 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
       return;
     }
     setState(() => _isLoading = true);
-    
-    // FIX: 'client' কে age theke declare kora hoyeche
     late final ColyseusClient client;
     client = ColyseusClient(onMessage: (m) {
       if (m['type'] == 'joined') {
@@ -51,7 +46,6 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
         ));
       }
     });
-    
     await client.connect(_serverUrl);
     client.joinRoom(code, 'Player 2');
   }
@@ -59,7 +53,7 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: const Color(0xFF1E130C),
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: const IconThemeData(color: Colors.white)),
       body: Center(
         child: _isLoading 
@@ -67,20 +61,22 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
           : Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('PLAY ONLINE', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                const Text('ONLINE MULTIPLAYER', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1)),
                 const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: _createRoom,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    elevation: 8,
+                    shadowColor: Colors.greenAccent,
                   ),
-                  child: const Text('CREATE PRIVATE ROOM', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: const Text('CREATE PRIVATE ROOM', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
                 const SizedBox(height: 40),
-                const Text('OR JOIN WITH CODE', style: TextStyle(color: Colors.white54)),
-                const SizedBox(height: 20),
+                const Text('OR JOIN WITH CODE', style: TextStyle(color: Colors.white54, letterSpacing: 1)),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: 250,
                   child: TextField(
@@ -88,13 +84,13 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
                     keyboardType: TextInputType.number,
                     maxLength: 6,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 24, letterSpacing: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 28, letterSpacing: 10, color: Colors.white, fontWeight: FontWeight.bold),
                     decoration: InputDecoration(
                       counterText: '',
                       filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.1),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                      hintText: '000000',
+                      fillColor: Colors.black.withValues(alpha: 0.5),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                      hintText: '------',
                       hintStyle: const TextStyle(color: Colors.white24),
                     ),
                   ),
@@ -103,11 +99,13 @@ class _OnlineRoomScreenState extends State<OnlineRoomScreen> {
                 ElevatedButton(
                   onPressed: _joinRoom,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                    backgroundColor: Colors.blueAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    elevation: 8,
+                    shadowColor: Colors.blue,
                   ),
-                  child: const Text('JOIN MATCH', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: const Text('JOIN ROOM', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ],
             ),

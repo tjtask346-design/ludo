@@ -1,7 +1,7 @@
-name: ludo_app
-description: Ludo player client
+name: bulla_ludo
+description: Bulla Ludo - Play Ludo with friends
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

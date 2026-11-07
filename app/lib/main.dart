@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 
-void main() => runApp(const LudoApp());
+void main() => runApp(const BullaLudoApp());
 
-class LudoApp extends StatelessWidget {
-  const LudoApp({super.key});
+class BullaLudoApp extends StatelessWidget {
+  const BullaLudoApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ludo Star',
+      title: 'Bulla Ludo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange, brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFF5AF19), brightness: Brightness.dark),
         useMaterial3: true,
       ),
       home: const HomeScreen(),
