@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../core/theme/app_theme.dart';
+import 'offline_game_screen.dart';
 import 'online_room_screen.dart';
 
 class ModeSelectionScreen extends StatelessWidget {
@@ -7,27 +9,21 @@ class ModeSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E130C),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text('SELECT MODE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
-        iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: const Text('SELECT MODE')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildModeButton(context, 'VS COMPUTER', 'Play against AI', Icons.computer, Colors.blueAccent, () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI mode coming soon!')));
+            _buildModeButton(context, 'VS COMPUTER', 'Play against AI', Icons.computer, AppColors.red, () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineGameScreen(isVsComputer: true)));
             }),
             const SizedBox(height: 20),
-            _buildModeButton(context, 'PASS & PLAY', 'Play with friends offline', Icons.people, Colors.greenAccent, () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Local multiplayer coming soon!')));
+            _buildModeButton(context, 'PASS & PLAY', 'Play with friends offline', Icons.people, AppColors.green, () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineGameScreen(isVsComputer: false)));
             }),
             const SizedBox(height: 20),
-            _buildModeButton(context, 'ONLINE MULTIPLAYER', 'Play with friends via code', Icons.wifi, Colors.orangeAccent, () {
+            _buildModeButton(context, 'ONLINE MULTIPLAYER', 'Play with friends via code', Icons.wifi, AppColors.blue, () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlineRoomScreen()));
             }),
           ],
@@ -43,24 +39,24 @@ class ModeSelectionScreen extends StatelessWidget {
         width: MediaQuery.of(context).size.width * 0.85,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF2E1C12),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), offset: const Offset(0, 5), blurRadius: 8)],
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), offset: const Offset(0, 4), blurRadius: 8)],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.2), shape: BoxShape.circle),
-              child: Icon(icon, size: 36, color: color),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
+              child: Icon(icon, size: 32, color: color),
             ),
             const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                Text(title, style: const TextStyle(color: AppColors.textDark, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(subtitle, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
               ],
             ),
           ],

@@ -19,18 +19,18 @@ class DiceWidget extends StatelessWidget {
       onTap: onTap,
       child: AnimatedRotation(
         turns: rolling ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 500),
         child: Container(
-          width: 80, height: 80,
+          width: 70, height: 70,
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             gradient: const LinearGradient(colors: [Colors.white, Color(0xFFE0E0E0)], begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.shade400, width: 2),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 6))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 5))],
           ),
           child: value == 0
-              ? const Center(child: Text('?', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.black54)))
+              ? const Center(child: Text('?', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black54)))
               : GridView.count(
                   crossAxisCount: 3,
                   physics: const NeverScrollableScrollPhysics(),
@@ -38,7 +38,7 @@ class DiceWidget extends StatelessWidget {
                     final row = i ~/ 3; final col = i % 3;
                     final has = (pipPositions[value] ?? []).any((p) => p[0] == row && p[1] == col);
                     return Padding(
-                      padding: const EdgeInsets.all(3),
+                      padding: const EdgeInsets.all(2),
                       child: has ? Container(decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle)) : const SizedBox(),
                     );
                   }),
