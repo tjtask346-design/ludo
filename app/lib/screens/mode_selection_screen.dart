@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
-import 'offline_game_screen.dart';
+import 'offline_setup_screen.dart';
 import 'online_room_screen.dart';
 
 class ModeSelectionScreen extends StatelessWidget {
@@ -16,11 +16,11 @@ class ModeSelectionScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildModeButton(context, 'VS COMPUTER', 'Play against AI', Icons.computer, AppColors.red, () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineGameScreen(isVsComputer: true)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineSetupScreen(isVsComputer: true)));
             }),
             const SizedBox(height: 20),
             _buildModeButton(context, 'PASS & PLAY', 'Play with friends offline', Icons.people, AppColors.green, () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineGameScreen(isVsComputer: false)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineSetupScreen(isVsComputer: false)));
             }),
             const SizedBox(height: 20),
             _buildModeButton(context, 'ONLINE MULTIPLAYER', 'Play with friends via code', Icons.wifi, AppColors.blue, () {
