@@ -1,21 +1,12 @@
 import express from "express";
+import cors from "cors";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import { connectDB } from "./db";
+import { User } from "./models/User";
 
-type Player = {
-  id: string; name: string; color: string;
-  diceValue: number; diceRolled: boolean;
-  tokens: number[];
-  sixCount: number;
-};
-type Room = {
-  roomId: string; matchCode: string;
-  players: Map<string, Player>;
-  sockets: Map<string, WebSocket>;
-  adminId: string | null;
-  currentTurn: string;
-  diceOverrides: Map<string, number>;
-};
+type Player = { id: string; name: string; color: string; diceValue: number; diceRolled: boolean; tokens: number[]; sixCount: number; };
+type Room = { roomId: string; matchCode: string; players: Map<string, Player>; sockets: Map<string, WebSocket>; adminId: string | null; currentTurn: string; diceOverrides: Map<string, number>; };
 
 const rooms = new Map<string, Room>();
 const codeToRoom = new Map<string, string>();
@@ -33,13 +24,12 @@ function genRoomId(): string { return "r_" + Math.random().toString(36).slice(2,
 function send(ws: WebSocket, obj: any) { try { ws.send(JSON.stringify(obj)); } catch {} }
 function broadcast(room: Room, obj: any) { for (const s of room.sockets.values()) send(s, obj); }
 
-function isValidMove(p: Player, idx: number, dice: number, room: Room): boolean {
+function isValidMove(p: Player, idx: number, dice: number): boolean {
   const pos = p.tokens[idx];
   if (pos === -1) return dice === 6;
   if (pos >= 0 && pos <= 56) return pos + dice <= 56;
   return false;
 }
-
 function nextTurn(room: Room) {
   const ids = Array.from(room.players.keys());
   if (ids.length === 0) { room.currentTurn = ""; return; }
@@ -50,13 +40,44 @@ function nextTurn(room: Room) {
 }
 
 const app = express();
-app.get("/", (_req, res) => res.json({ name: "ludo-server", status: "ok", rooms: rooms.size, codes: codeToRoom.size }));
-app.get("/api/lookup/:code", (req, res) => {
-  const rid = codeToRoom.get(req.params.code);
-  if (!rid) return res.status(404).json({ error: "match_not_found" });
-  res.json({ matchCode: req.params.code, roomId: rid });
+app.use(cors());
+app.use(express.json());
+
+// --- REST API Endpoints ---
+app.get("/", (_req, res) => res.json({ name: "ludo-server", status: "ok", rooms: rooms.size }));
+
+// Create or fetch user profile
+app.post("/api/user/login", async (req, res) => {
+  try {
+    const { playerId, name } = req.body;
+    let user = await User.findOne({ playerId });
+    if (!user) {
+      user = new User({ playerId, name: name || "Guest" });
+      await user.save();
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
+// Update user stats (e.g. after win)
+app.post("/api/user/update", async (req, res) => {
+  try {
+    const { playerId, isWin, coinsEarned } = req.body;
+    const user = await User.findOne({ playerId });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    if (isWin) user.wins += 1; else user.losses += 1;
+    user.coins += (coinsEarned || 0);
+    await user.save();
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// --- WebSocket Game Logic ---
 const httpServer = createServer(app);
 const wss = new WebSocketServer({ server: httpServer });
 type Conn = { roomId: string | null; playerId: string; isAdmin: boolean; matchCode: string | null };
@@ -75,13 +96,7 @@ wss.on("connection", (ws) => {
       const roomId = genRoomId();
       const matchCode = genCode();
       const p: Player = { id: playerId, name: msg.name || "Player", color: COLORS[0], diceValue: 0, diceRolled: false, tokens: [-1, -1, -1, -1], sixCount: 0 };
-      const room: Room = {
-        roomId, matchCode,
-        players: new Map([[playerId, p]]),
-        sockets: new Map([[playerId, ws]]),
-        adminId: null, currentTurn: playerId,
-        diceOverrides: new Map(),
-      };
+      const room: Room = { roomId, matchCode, players: new Map([[playerId, p]]), sockets: new Map([[playerId, ws]]), adminId: null, currentTurn: playerId, diceOverrides: new Map() };
       rooms.set(roomId, room);
       codeToRoom.set(matchCode, roomId);
       conn.roomId = roomId; conn.matchCode = matchCode;
@@ -114,22 +129,18 @@ wss.on("connection", (ws) => {
       } else {
         value = Math.floor(Math.random() * 6) + 1;
       }
-
       p.diceValue = value;
       p.diceRolled = true;
-      
-      if (value === 6) { p.sixCount++; } else { p.sixCount = 0; }
+      if (value === 6) p.sixCount++; else p.sixCount = 0;
 
       if (p.sixCount === 3) {
-        p.sixCount = 0;
-        p.diceRolled = false;
+        p.sixCount = 0; p.diceRolled = false;
         broadcast(room, { type: "dice_rolled", playerId, value });
         broadcast(room, { type: "turn_voided", playerId });
         nextTurn(room);
         broadcast(room, { type: "turn_changed", currentTurn: room.currentTurn });
         return;
       }
-
       broadcast(room, { type: "dice_rolled", playerId, value });
     } else if (msg.type === "move_token") {
       if (!conn.roomId) return;
@@ -137,39 +148,24 @@ wss.on("connection", (ws) => {
       if (room.currentTurn !== playerId) { send(ws, { type: "error", message: "not_your_turn" }); return; }
       const p = room.players.get(playerId)!;
       if (!p.diceRolled) { send(ws, { type: "error", message: "roll_first" }); return; }
+      
       const tokenIdx = msg.tokenIndex;
       if (typeof tokenIdx !== "number" || tokenIdx < 0 || tokenIdx > 3) return;
-      if (!isValidMove(p, tokenIdx, p.diceValue, room)) { send(ws, { type: "error", message: "invalid_move" }); return; }
+      if (!isValidMove(p, tokenIdx, p.diceValue)) { send(ws, { type: "error", message: "invalid_move" }); return; }
       
       const dice = p.diceValue;
-      let captured = false;
-      let reachedHome = false;
-
-      if (p.tokens[tokenIdx] === -1) {
-        p.tokens[tokenIdx] = 0;
-      } else {
-        const newPos = p.tokens[tokenIdx] + dice;
-        if (newPos === 56) reachedHome = true;
-        p.tokens[tokenIdx] = newPos;
-      }
-
+      if (p.tokens[tokenIdx] === -1) p.tokens[tokenIdx] = 0;
+      else p.tokens[tokenIdx] += dice;
+      
       p.diceRolled = false;
-      broadcast(room, { type: "token_moved", playerId, tokenIndex: tokenIdx, tokens: p.tokens, captured, reachedHome });
+      broadcast(room, { type: "token_moved", playerId, tokenIndex: tokenIdx, tokens: p.tokens });
 
-      if (dice === 6 || captured || reachedHome) {
-        // same player rolls again (already reset diceRolled to false)
+      if (dice === 6) {
+        // Extra turn
       } else {
         nextTurn(room);
         broadcast(room, { type: "turn_changed", currentTurn: room.currentTurn });
       }
-    } else if (msg.type === "skip_turn") {
-      if (!conn.roomId) return;
-      const room = rooms.get(conn.roomId)!;
-      if (room.currentTurn !== playerId) return;
-      const p = room.players.get(playerId)!;
-      p.diceRolled = false;
-      nextTurn(room);
-      broadcast(room, { type: "turn_changed", currentTurn: room.currentTurn });
     } else if (msg.type === "admin_join") {
       const code = String(msg.matchCode || "").trim();
       const roomId = codeToRoom.get(code);
@@ -205,4 +201,6 @@ wss.on("connection", (ws) => {
 });
 
 const port = Number(process.env.PORT) || 2567;
-httpServer.listen(port, () => console.log("Ludo server on :" + port));
+connectDB().then(() => {
+  httpServer.listen(port, () => console.log("Ludo server running on :" + port));
+});
