@@ -1,5 +1,5 @@
 name: bulla_ludo
-description: Bulla Ludo - Play Ludo with friends
+description: Bulla Ludo
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -28,3 +28,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/
+    - assets/images/

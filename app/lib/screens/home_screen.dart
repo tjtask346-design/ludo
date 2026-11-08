@@ -4,6 +4,9 @@ import 'dart:math';
 import '../core/theme/app_theme.dart';
 import '../services/api_service.dart';
 import 'mode_selection_screen.dart';
+import 'online_room_screen.dart';
+import 'offline_setup_screen.dart';
+import 'club_screen.dart';
 import 'daily_rewards_screen.dart';
 import 'settings_screen.dart';
 
@@ -15,10 +18,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String playerName = 'Player';
-  int coins = 0;
-  int diamonds = 0;
+  int coins = 1000;
+  int diamonds = 50;
   int level = 1;
-  String playerId = '';
   bool isLoading = true;
 
   @override
@@ -29,24 +31,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    playerId = prefs.getString('playerId') ?? '';
-
-    if (playerId.isEmpty) {
-      playerId = 'P${Random().nextInt(99999999)}';
-      await prefs.setString('playerId', playerId);
-    }
-
-    final userData = await ApiService.login(playerId, 'Player');
+    String playerId = prefs.getString('playerId') ?? 'P${Random().nextInt(99999999)}';
+    await prefs.setString('playerId', playerId);
+    final data = await ApiService.login(playerId, 'Player');
     if (mounted) {
       setState(() {
-        if (userData != null) {
-          playerName = userData['name'] ?? 'Player';
-          coins = userData['coins'] ?? 1000;
-          diamonds = userData['diamonds'] ?? 50;
-          level = userData['level'] ?? 1;
-        } else {
-          coins = 1000;
-          diamonds = 50;
+        if (data != null) {
+          coins = data['coins'] ?? 1000;
+          diamonds = data['diamonds'] ?? 50;
+          level = data['level'] ?? 1;
         }
         isLoading = false;
       });
@@ -56,17 +49,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0F1423),
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: AppColors.textDark), 
+            icon: const Icon(Icons.menu, color: Colors.white), 
             onPressed: () => Scaffold.of(context).openDrawer()
           )
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: AppColors.textDark), 
+            icon: const Icon(Icons.settings, color: Colors.white), 
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))
           ),
         ],
@@ -78,42 +73,42 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _buildTopHeader(),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    children: [
-                      // Large Full-width Card
-                      _buildWideCard('PLAY ONLINE', 'Play with players around the world', AppColors.blue, Icons.public, () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
-                      }),
-                      const SizedBox(height: 16),
-                      
-                      // Two Side-by-Side Square Cards
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildSquareCard('WITH FRIENDS', 'Create room', AppColors.green, Icons.group, () {}),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      final cards = [
+                        {'img': '01_computer.png', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineSetupScreen(isVsComputer: true)))},
+                        {'img': '02_players2.png', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineSetupScreen(isVsComputer: false)))},
+                        {'img': '03_players4.png', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineSetupScreen(isVsComputer: false)))},
+                        {'img': '04_teamup.png', 'action': () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming Soon')))},
+                        {'img': '05_quickludo.png', 'action': () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming Soon')))},
+                        {'img': '06_tournament.png', 'action': () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming Soon')))},
+                        {'img': '07_snakes.png', 'action': () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming Soon')))},
+                        {'img': '08_privateroom.png', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlineRoomScreen()))},
+                        {'img': '09_offline.png', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()))},
+                        {'img': '10_adda.png', 'action': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClubScreen()))},
+                      ];
+                      return GestureDetector(
+                        onTap: cards[index]['action'] as VoidCallback,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 6))],
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildSquareCard('COMPUTER', 'Play vs AI', AppColors.red, Icons.computer, () {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
-                            }),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Image.asset('assets/images/${cards[index]['img']}', fit: BoxFit.cover),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Large Full-width Card
-                      _buildWideCard('PASS N PLAY', 'Play offline with friends', AppColors.yellow, Icons.phone_android, () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ModeSelectionScreen()));
-                      }),
-                      
-                      const SizedBox(height: 24),
-                      const Text('EVENTS & REWARDS', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                      const SizedBox(height: 12),
-                      _buildRewardBanner(context),
-                      const SizedBox(height: 24),
-                    ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -124,40 +119,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTopHeader() {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))],
+        color: const Color(0xFF1A2235),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white12),
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.blueLight,
-            child: Icon(Icons.person, color: Colors.white, size: 30),
-          ),
+          const CircleAvatar(radius: 24, backgroundColor: AppColors.blueLight, child: Icon(Icons.person, color: Colors.white, size: 30)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(playerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
+                Text(playerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(color: AppColors.yellow, borderRadius: BorderRadius.circular(4)),
-                      child: Text('Lv. $level', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: Text('Lv. $level', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black)),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: LinearProgressIndicator(
-                        value: 0.6,
-                        backgroundColor: AppColors.border,
-                        color: AppColors.green,
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
+                      child: LinearProgressIndicator(value: 0.6, backgroundColor: Colors.white12, color: AppColors.green, minHeight: 6, borderRadius: BorderRadius.circular(3)),
                     ),
                   ],
                 ),
@@ -176,125 +163,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildResourceChip(IconData icon, Color color, String amount) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFF0F1423), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white12)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: color, size: 16),
           const SizedBox(width: 4),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark)),
+          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
         ],
-      ),
-    );
-  }
-
-  // For PLAY ONLINE and PASS N PLAY
-  Widget _buildWideCard(String title, String subtitle, Color color, IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 6))],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
-              child: Icon(icon, color: Colors.white, size: 30),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
-                  Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                ],
-              ),
-            ),
-            const Icon(Icons.play_circle_fill, color: Colors.white, size: 36),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // For WITH FRIENDS and COMPUTER (Side-by-Side)
-  Widget _buildSquareCard(String title, String subtitle, Color color, IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 140, // Fixed height to prevent overflow
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 6))],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 36),
-            const SizedBox(height: 12),
-            Text(
-              title, 
-              maxLines: 1, 
-              overflow: TextOverflow.ellipsis, 
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900)
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle, 
-              maxLines: 1, 
-              overflow: TextOverflow.ellipsis, 
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70, fontSize: 11)
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRewardBanner(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyRewardsScreen())),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.card_giftcard, color: AppColors.red, size: 40),
-            const SizedBox(width: 16),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Daily Reward Available!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('Claim your free coins now.', style: TextStyle(color: AppColors.textLight, fontSize: 12)),
-                ],
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyRewardsScreen())),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.red, padding: const EdgeInsets.symmetric(horizontal: 16)),
-              child: const Text('CLAIM', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
       ),
     );
   }
