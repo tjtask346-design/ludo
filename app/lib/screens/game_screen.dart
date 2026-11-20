@@ -70,7 +70,6 @@ class _GameScreenState extends State<GameScreen> {
         }
       });
     } else {
-      // Pass N Play Handover
       if (!widget.isVsComputer && previousTurnIndex != -1 && previousTurnIndex != engine.currentTurnIndex && engine.diceValue == 0) {
         setState(() => showHandover = true);
       }
@@ -88,7 +87,7 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _onTokenTap(int tokenIndex) {
+  void _onTokenTap(String playerId, int tokenIndex) {
     if (engine.currentPlayer.isBot) return;
     setState(() => engine.moveToken(tokenIndex));
     if (SettingsService.vibrationOn) HapticFeedback.mediumImpact();
@@ -108,16 +107,18 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Map<String, List<int>> tokensMap = {};
+    Map<String, String> colorsMap = {};
+    for (var p in engine.players) {
+      tokensMap[p.name] = p.tokens.map((t) => t.position).toList();
+      colorsMap[p.name] = p.color;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(engine.gameOver ? 'Game Over' : '${engine.currentPlayer.name}\'s Turn'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app, color: AppColors.red),
-            onPressed: () => Navigator.pop(context),
-          )
-        ],
+        actions: [IconButton(icon: const Icon(Icons.exit_to_app, color: AppColors.red), onPressed: () => Navigator.pop(context))],
       ),
       body: SafeArea(
         child: Stack(
@@ -131,18 +132,14 @@ class _GameScreenState extends State<GameScreen> {
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 500),
-                        child: LudoBoard(engine: engine, onTokenTap: _onTokenTap),
+                        child: LudoBoard(tokensByPlayer: tokensMap, playerColors: colorsMap, highlightedPlayer: engine.currentPlayer.name, onTokenTap: _onTokenTap),
                       ),
                     ),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                  decoration: const BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                    boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-                  ),
+                  decoration: const BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

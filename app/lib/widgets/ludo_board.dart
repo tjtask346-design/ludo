@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../game/ludo_engine.dart';
 
 class LudoBoard extends StatelessWidget {
-  final LudoEngine engine;
-  final void Function(int tokenIndex)? onTokenTap;
+  final Map<String, List<int>> tokensByPlayer;
+  final Map<String, String> playerColors;
+  final String? highlightedPlayer;
+  final void Function(String playerId, int tokenIndex)? onTokenTap;
 
-  const LudoBoard({super.key, required this.engine, this.onTokenTap});
+  const LudoBoard({super.key, required this.tokensByPlayer, required this.playerColors, this.highlightedPlayer, this.onTokenTap});
 
   static final List<List<int>> pathCells = [
     [6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],
@@ -41,19 +42,18 @@ class LudoBoard extends StatelessWidget {
 
   List<Widget> _buildTokens(double cell) {
     final widgets = <Widget>[];
-    
-    // Group tokens by grid to handle overlapping
     Map<String, List<Map<String, dynamic>>> gridOccupancy = {};
 
-    for (int p = 0; p < engine.players.length; p++) {
-      final player = engine.players[p];
-      for (int i = 0; i < 4; i++) {
-        final token = player.tokens[i];
-        final grid = _posToGrid(player.color, i, token.position);
+    for (final entry in tokensByPlayer.entries) {
+      final pid = entry.key;
+      final tokens = entry.value;
+      final color = playerColors[pid] ?? 'red';
+      
+      for (int i = 0; i < tokens.length; i++) {
+        final grid = _posToGrid(color, i, tokens[i]);
         final key = '${grid[0]}_${grid[1]}';
-        
         if (!gridOccupancy.containsKey(key)) gridOccupancy[key] = [];
-        gridOccupancy[key]!.add({'player': player, 'index': i, 'token': token, 'grid': grid});
+        gridOccupancy[key]!.add({'pid': pid, 'index': i, 'grid': grid, 'color': color, 'pos': tokens[i]});
       }
     }
 
@@ -63,14 +63,11 @@ class LudoBoard extends StatelessWidget {
       
       for (int j = 0; j < total; j++) {
         final data = tokensInCell[j];
-        final player = data['player'] as LudoPlayer;
+        final pid = data['pid'] as String;
         final i = data['index'] as int;
-        final token = data['token'] as LudoToken;
         final grid = data['grid'] as List<int>;
         
-        bool canMove = (engine.currentTurnIndex == engine.players.indexOf(player) && engine.hasRolled && engine.isValidMove(player, i, engine.diceValue));
-        
-        // Calculate offset if multiple tokens
+        bool isMyToken = pid == highlightedPlayer;
         double offsetScale = total > 1 ? 0.7 : 0.8;
         double dx = 0, dy = 0;
         if (total > 1) {
@@ -79,7 +76,7 @@ class LudoBoard extends StatelessWidget {
         }
 
         widgets.add(AnimatedPositioned(
-          key: ValueKey('${player.color}_$i'),
+          key: ValueKey('${pid}_$i'),
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
           left: grid[1] * cell + cell * 0.1 + dx,
@@ -87,8 +84,8 @@ class LudoBoard extends StatelessWidget {
           width: cell * offsetScale,
           height: cell * offsetScale,
           child: GestureDetector(
-            onTap: canMove && onTokenTap != null ? () => onTokenTap!(i) : null,
-            child: _Token(color: _colorOf(player.color), highlighted: canMove, size: cell * offsetScale),
+            onTap: isMyToken && onTokenTap != null ? () => onTokenTap!(pid, i) : null,
+            child: _Token(color: _colorOf(data['color'] as String), highlighted: isMyToken, size: cell * offsetScale),
           ),
         ));
       }
@@ -143,7 +140,6 @@ class _BoardPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cell = size.width / 15;
     final stroke = Paint()..color = Colors.black..style = PaintingStyle.stroke..strokeWidth = 1;
-
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = Colors.white);
 
     _drawBase(canvas, cell, 9, 0, const Color(0xFFE53935));
@@ -151,10 +147,7 @@ class _BoardPainter extends CustomPainter {
     _drawBase(canvas, cell, 0, 9, const Color(0xFFFFC928));
     _drawBase(canvas, cell, 9, 9, const Color(0xFF2878DB));
 
-    for (final c in LudoBoard.pathCells) {
-      _drawCell(canvas, cell, c[0], c[1], Colors.white, stroke);
-    }
-
+    for (final c in LudoBoard.pathCells) _drawCell(canvas, cell, c[0], c[1], Colors.white, stroke);
     for (int i = 0; i < 5; i++) {
       _drawCell(canvas, cell, 7, 1 + i, const Color(0xFFE53935), stroke);
       _drawCell(canvas, cell, 1 + i, 7, const Color(0xFF20A65A), stroke);
@@ -163,8 +156,6 @@ class _BoardPainter extends CustomPainter {
     }
 
     _drawCenter(canvas, cell);
-    
-    // Safe Stars
     final starPaint = Paint()..color = Colors.grey.shade400;
     for (final idx in LudoBoard.safeIndices) {
       final c = LudoBoard.pathCells[idx];
@@ -178,13 +169,18 @@ class _BoardPainter extends CustomPainter {
     final path = Path();
     for (int i = 0; i < 5; i++) {
       final angle = -3.14159 / 2 + i * 4 * 3.14159 / 5;
-      final x = center.dx + radius * cos(angle);
-      final y = center.dy + radius * sin(angle);
-      if (i == 0) path.moveTo(x, y); else path.lineTo(x, y);
+      final x = center.dx + radius * (angle == angle ? (i % 2 == 0 ? 1 : 0.4) : 1) * (angle == angle ? 1 : 1) * 1.0;
+      final y = center.dy + radius * (angle == angle ? (i % 2 == 0 ? 1 : 0.4) : 1) * (angle == angle ? 1 : 1) * 1.0;
+      final px = center.dx + radius * 0.7 * (i % 2 == 0 ? 1 : 0.4) * _cos(angle);
+      final py = center.dy + radius * 0.7 * (i % 2 == 0 ? 1 : 0.4) * _sin(angle);
+      if (i == 0) path.moveTo(px, py); else path.lineTo(px, py);
     }
     path.close();
     canvas.drawPath(path, paint);
   }
+
+  double _cos(double x) => (x == x) ? (x * 0.7) : 0;
+  double _sin(double x) => (x == x) ? (x * 0.5) : 0;
 
   void _drawBase(Canvas canvas, double cell, int row, int col, Color color) {
     final rect = Rect.fromLTWH(col * cell, row * cell, cell * 6, cell * 6);
