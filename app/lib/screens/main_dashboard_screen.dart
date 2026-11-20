@@ -3,13 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import '../core/theme/app_theme.dart';
 import '../services/api_service.dart';
-import 'setup_screen.dart';
-import 'online_lobby_screen.dart';
 import 'settings_screen.dart';
 import 'shop_screen.dart';
 import 'leaderboard_screen.dart';
 import 'profile_screen.dart';
 import 'daily_rewards_screen.dart';
+import 'game_modes_screen.dart';
+import 'online_lobby_screen.dart';
 
 class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
@@ -110,11 +110,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
               const SizedBox(height: 20),
               const Text('PLAY LUDO', textAlign: TextAlign.center, style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 4)),
               const Spacer(),
-              _buildMenuButton('ONLINE MULTIPLAYER', AppColors.blue, Icons.public, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlineLobbyScreen()))),
+              _buildMenuButton('PLAY GAME', AppColors.blue, Icons.play_circle_fill, () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const GameModesScreen()));
+              }),
               const SizedBox(height: 16),
-              _buildMenuButton('PLAY VS COMPUTER', AppColors.red, Icons.computer, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SetupScreen(isVsComputer: true)))),
-              const SizedBox(height: 16),
-              _buildMenuButton('PASS N PLAY', AppColors.green, Icons.people, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SetupScreen(isVsComputer: false)))),
+              _buildMenuButton('ONLINE MULTIPLAYER', AppColors.green, Icons.public, () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlineLobbyScreen()));
+              }),
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyRewardsScreen())),
@@ -171,7 +173,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           children: [
             Icon(icon, color: Colors.white, size: 40),
             const SizedBox(width: 20),
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))),
           ],
         ),
       ),
