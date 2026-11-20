@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
-import 'screens/splash_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() => runApp(const BullaLudoApp());
 
@@ -11,8 +11,8 @@ class BullaLudoApp extends StatelessWidget {
     return MaterialApp(
       title: 'Bulla Ludo',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+      theme: AppTheme.darkTheme,
+      home: const HomeScreen(),
     );
   }
 }

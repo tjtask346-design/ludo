@@ -3,7 +3,7 @@ import 'dart:math';
 enum AIDifficulty { easy, medium, hard }
 
 class LudoToken {
-  int position; // -1 = Base, 0 to 50 = Track, 51 to 55 = Home Lane, 56 = Home
+  int position;
   LudoToken({this.position = -1});
 }
 
@@ -11,6 +11,7 @@ class LudoPlayer {
   final String name;
   final String color;
   final bool isBot;
+  int sixCount = 0;
   final List<LudoToken> tokens = [LudoToken(), LudoToken(), LudoToken(), LudoToken()];
   LudoPlayer({required this.name, required this.color, this.isBot = false});
 }
@@ -34,11 +35,20 @@ class LudoEngine {
     diceValue = _random.nextInt(6) + 1;
     hasRolled = true;
     
-    // Check if any valid moves exist
+    if (diceValue == 6) {
+      currentPlayer.sixCount++;
+      if (currentPlayer.sixCount == 3) {
+        currentPlayer.sixCount = 0;
+        hasRolled = false;
+        Future.delayed(const Duration(milliseconds: 800), () => nextTurn());
+        return diceValue;
+      }
+    } else {
+      currentPlayer.sixCount = 0;
+    }
+
     if (!_hasValidMoves(currentPlayer, diceValue)) {
-      Future.delayed(const Duration(milliseconds: 800), () {
-        nextTurn();
-      });
+      Future.delayed(const Duration(milliseconds: 1000), () => nextTurn());
     }
     return diceValue;
   }
@@ -72,7 +82,7 @@ class LudoEngine {
 
     bool extraTurn = diceValue == 6;
     bool captured = _checkCapture(player, tokenIndex);
-
+    
     if (captured) extraTurn = true;
     if (token.position == 56) extraTurn = true;
 
@@ -86,6 +96,7 @@ class LudoEngine {
     if (!extraTurn) {
       nextTurn();
     } else {
+      currentPlayer.sixCount = 0; // Reset after extra turn logic
       if (currentPlayer.isBot) _botRoll();
     }
   }
@@ -93,7 +104,6 @@ class LudoEngine {
   bool _checkCapture(LudoPlayer player, int tokenIndex) {
     int pos = player.tokens[tokenIndex].position;
     if (pos < 0 || pos > 50) return false;
-    
     List<int> safeSquares = [0, 8, 13, 21, 26, 34, 39, 47];
     if (safeSquares.contains(pos)) return false;
 
@@ -126,13 +136,12 @@ class LudoEngine {
 
   void _botRoll() {
     Future.delayed(const Duration(milliseconds: 800), () {
+      if (gameOver) return;
       rollDice();
       Future.delayed(const Duration(milliseconds: 600), () {
         if (!hasRolled || gameOver) return;
         int bestMove = _getBestMove(currentPlayer, diceValue);
-        if (bestMove != -1) {
-          moveToken(bestMove);
-        }
+        if (bestMove != -1) moveToken(bestMove);
       });
     });
   }
@@ -151,25 +160,10 @@ class LudoEngine {
     for (int move in validMoves) {
       int score = 0;
       int newPos = player.tokens[move].position == -1 ? 0 : player.tokens[move].position + dice;
-
-      // Prioritize capturing
       if (_simulateCapture(player, move, newPos)) score += 1000;
-      
-      // Prioritize reaching home
       if (newPos == 56) score += 500;
-      
-      // Prioritize opening from base
       if (player.tokens[move].position == -1) score += 300;
-      
-      // Prioritize entering home lane
       if (newPos > 50 && newPos < 56) score += 200;
-
-      // Hard mode: Avoid landing near opponent
-      if (difficulty == AIDifficulty.hard) {
-        if (_isVulnerable(player, newPos)) score -= 400;
-        if (newPos > 45) score += 150; // Push towards home
-      }
-      
       if (score > bestScore) {
         bestScore = score;
         bestMove = move;
@@ -186,20 +180,6 @@ class LudoEngine {
       if (p == player) continue;
       for (var t in p.tokens) {
         if (t.position == newPos) return true;
-      }
-    }
-    return false;
-  }
-
-  bool _isVulnerable(LudoPlayer player, int pos) {
-    if (pos > 50) return false;
-    List<int> safe = [0, 8, 13, 21, 26, 34, 39, 47];
-    if (safe.contains(pos)) return false;
-    for (var p in players) {
-      if (p == player) continue;
-      for (var t in p.tokens) {
-        int dist = pos - t.position;
-        if (dist > 0 && dist <= 6) return true;
       }
     }
     return false;

@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../game/ludo_engine.dart';
-import 'offline_game_screen.dart';
+import 'game_screen.dart';
 
-class OfflineSetupScreen extends StatefulWidget {
+class SetupScreen extends StatefulWidget {
   final bool isVsComputer;
-  const OfflineSetupScreen({super.key, required this.isVsComputer});
-
+  const SetupScreen({super.key, required this.isVsComputer});
   @override
-  State<OfflineSetupScreen> createState() => _OfflineSetupScreenState();
+  State<SetupScreen> createState() => _SetupScreenState();
 }
 
-class _OfflineSetupScreenState extends State<OfflineSetupScreen> {
+class _SetupScreenState extends State<SetupScreen> {
   int playerCount = 4;
   AIDifficulty difficulty = AIDifficulty.medium;
 
@@ -25,7 +24,7 @@ class _OfflineSetupScreenState extends State<OfflineSetupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Number of Players', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text('Select Players', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -39,18 +38,15 @@ class _OfflineSetupScreenState extends State<OfflineSetupScreen> {
                       color: isSelected ? AppColors.blue : AppColors.card,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.blue, width: 2),
-                      boxShadow: isSelected ? [BoxShadow(color: AppColors.blue.withValues(alpha: 0.4), blurRadius: 10)] : [],
                     ),
-                    child: Center(
-                      child: Text('$num', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textDark)),
-                    ),
+                    child: Center(child: Text('$num', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.white70))),
                   ),
                 );
               }).toList(),
             ),
             const SizedBox(height: 32),
             if (widget.isVsComputer) ...[
-              const Text('AI Difficulty', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('AI Difficulty', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -65,10 +61,7 @@ class _OfflineSetupScreenState extends State<OfflineSetupScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.red, width: 2),
                       ),
-                      child: Text(
-                        diff.name.toUpperCase(),
-                        style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textDark),
-                      ),
+                      child: Text(diff.name.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.white70)),
                     ),
                   );
                 }).toList(),
@@ -76,20 +69,15 @@ class _OfflineSetupScreenState extends State<OfflineSetupScreen> {
             ],
             const Spacer(),
             SizedBox(
-              width: double.infinity,
-              height: 56,
+              width: double.infinity, height: 56,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => OfflineGameScreen(
-                      isVsComputer: widget.isVsComputer,
-                      playerCount: playerCount,
-                      difficulty: difficulty,
-                    ),
+                    builder: (_) => GameScreen(isVsComputer: widget.isVsComputer, playerCount: playerCount, difficulty: difficulty),
                   ));
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.green),
-                child: const Text('START GAME', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                child: const Text('START GAME', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
           ],
