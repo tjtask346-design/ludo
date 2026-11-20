@@ -21,13 +21,12 @@ class DiceWidget extends StatelessWidget {
         turns: rolling ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 500),
         child: Container(
-          width: 70, height: 70,
-          padding: const EdgeInsets.all(8),
+          width: 70, height: 70, padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             gradient: const LinearGradient(colors: [Colors.white, Color(0xFFE0E0E0)], begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.shade400, width: 2),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 5))],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 5))],
           ),
           child: value == 0
               ? const Center(child: Text('?', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black54)))

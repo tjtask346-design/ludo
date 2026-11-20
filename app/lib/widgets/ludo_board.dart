@@ -53,7 +53,7 @@ class LudoBoard extends StatelessWidget {
         final grid = _posToGrid(color, i, tokens[i]);
         final key = '${grid[0]}_${grid[1]}';
         if (!gridOccupancy.containsKey(key)) gridOccupancy[key] = [];
-        gridOccupancy[key]!.add({'pid': pid, 'index': i, 'grid': grid, 'color': color, 'pos': tokens[i]});
+        gridOccupancy[key]!.add({'pid': pid, 'index': i, 'grid': grid, 'color': color});
       }
     }
 
@@ -68,11 +68,11 @@ class LudoBoard extends StatelessWidget {
         final grid = data['grid'] as List<int>;
         
         bool isMyToken = pid == highlightedPlayer;
-        double offsetScale = total > 1 ? 0.7 : 0.8;
+        double offsetScale = total > 1 ? 0.6 : 0.8;
         double dx = 0, dy = 0;
         if (total > 1) {
-          dx = (j % 2) * (cell * 0.15);
-          dy = (j ~/ 2) * (cell * 0.15);
+          dx = (j % 2) * (cell * 0.2);
+          dy = (j ~/ 2) * (cell * 0.2);
         }
 
         widgets.add(AnimatedPositioned(
@@ -169,18 +169,13 @@ class _BoardPainter extends CustomPainter {
     final path = Path();
     for (int i = 0; i < 5; i++) {
       final angle = -3.14159 / 2 + i * 4 * 3.14159 / 5;
-      final x = center.dx + radius * (angle == angle ? (i % 2 == 0 ? 1 : 0.4) : 1) * (angle == angle ? 1 : 1) * 1.0;
-      final y = center.dy + radius * (angle == angle ? (i % 2 == 0 ? 1 : 0.4) : 1) * (angle == angle ? 1 : 1) * 1.0;
-      final px = center.dx + radius * 0.7 * (i % 2 == 0 ? 1 : 0.4) * _cos(angle);
-      final py = center.dy + radius * 0.7 * (i % 2 == 0 ? 1 : 0.4) * _sin(angle);
+      final px = center.dx + radius * 0.7 * (i % 2 == 0 ? 1 : 0.4) * (i % 2 == 0 ? 1.0 : (i == 1 ? 0.8 : -0.8));
+      final py = center.dy + radius * 0.7 * (i % 2 == 0 ? 1 : 0.4) * (i % 2 == 0 ? 1.0 : (i == 1 ? 0.8 : -0.8));
       if (i == 0) path.moveTo(px, py); else path.lineTo(px, py);
     }
     path.close();
     canvas.drawPath(path, paint);
   }
-
-  double _cos(double x) => (x == x) ? (x * 0.7) : 0;
-  double _sin(double x) => (x == x) ? (x * 0.5) : 0;
 
   void _drawBase(Canvas canvas, double cell, int row, int col, Color color) {
     final rect = Rect.fromLTWH(col * cell, row * cell, cell * 6, cell * 6);

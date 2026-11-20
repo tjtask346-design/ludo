@@ -73,7 +73,7 @@ class _SetupScreenState extends State<SetupScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => GameScreen(isVsComputer: widget.isVsComputer, playerCount: playerCount, difficulty: difficulty),
+                    builder: (_) => GameScreen(isVsComputer: widget.isVsComputer, isTeamMode: false, playerCount: playerCount, difficulty: difficulty),
                   ));
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.green),

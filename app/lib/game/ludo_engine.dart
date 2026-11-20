@@ -3,7 +3,7 @@ import 'dart:math';
 enum AIDifficulty { easy, medium, hard }
 
 class LudoToken {
-  int position;
+  int position; 
   LudoToken({this.position = -1});
 }
 
@@ -11,14 +11,16 @@ class LudoPlayer {
   final String name;
   final String color;
   final bool isBot;
+  final String? team; 
   int sixCount = 0;
   final List<LudoToken> tokens = [LudoToken(), LudoToken(), LudoToken(), LudoToken()];
-  LudoPlayer({required this.name, required this.color, this.isBot = false});
+  LudoPlayer({required this.name, required this.color, this.isBot = false, this.team});
 }
 
 class LudoEngine {
   final List<LudoPlayer> players;
   final AIDifficulty difficulty;
+  final bool isTeamMode;
   int currentTurnIndex = 0;
   int diceValue = 0;
   bool hasRolled = false;
@@ -26,7 +28,7 @@ class LudoEngine {
   String winner = "";
   final Random _random = Random();
 
-  LudoEngine({required this.players, this.difficulty = AIDifficulty.medium});
+  LudoEngine({required this.players, this.difficulty = AIDifficulty.medium, this.isTeamMode = false});
 
   LudoPlayer get currentPlayer => players[currentTurnIndex];
 
@@ -88,7 +90,11 @@ class LudoEngine {
 
     if (_checkWin(player)) {
       gameOver = true;
-      winner = player.name;
+      if (isTeamMode) {
+        winner = player.team == 'A' ? 'Team Red & Yellow' : 'Team Green & Blue';
+      } else {
+        winner = player.name;
+      }
       return;
     }
 
@@ -96,7 +102,7 @@ class LudoEngine {
     if (!extraTurn) {
       nextTurn();
     } else {
-      currentPlayer.sixCount = 0; // Reset after extra turn logic
+      currentPlayer.sixCount = 0;
       if (currentPlayer.isBot) _botRoll();
     }
   }
@@ -110,6 +116,9 @@ class LudoEngine {
     bool captured = false;
     for (var otherPlayer in players) {
       if (otherPlayer == player) continue;
+      // In team mode, don't capture teammates
+      if (isTeamMode && player.team == otherPlayer.team) continue;
+      
       for (var otherToken in otherPlayer.tokens) {
         if (otherToken.position == pos) {
           otherToken.position = -1;
@@ -178,6 +187,7 @@ class LudoEngine {
     if (safe.contains(newPos)) return false;
     for (var p in players) {
       if (p == player) continue;
+      if (isTeamMode && player.team == p.team) continue;
       for (var t in p.tokens) {
         if (t.position == newPos) return true;
       }
